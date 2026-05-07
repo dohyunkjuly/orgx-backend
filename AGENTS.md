@@ -20,21 +20,31 @@ This is a university project / sample.
 
 src/                          App entry — composition only
 ├── app.module.ts
-├── main.ts                   Registers global filter + interceptor
-└── health/                   Feature modules (controller + service per feature)
+├── main.ts                   Registers global filter + interceptor + pipes
+├── auth/                     Feature module (controller, service, dto/, etc.)
+│   └── dto/                  Request/response DTOs for this feature
+├── health/                   Feature module
+└── common/                   Cross-feature helpers used inside src/
+    ├── decorators/           e.g. @CurrentUser
+    ├── guards/               e.g. JwtAuthGuard
+    ├── repositories/         Thin Prisma wrappers shared across features
+    └── types/                Shared TS types (e.g. JwtPayload, AuthUser)
 
 lib/                          Internal Nest libraries (registered in nest-cli.json)
 ├── core/                     Shared primitives
-│   ├── api/                  ApiHttpResponse class
+│   ├── api/                  ApiHttpResponse / ApiHttpError classes
 │   ├── codes/                Error code constants (1xxx user, 2xxx auth, etc.)
-│   ├── filter/               Global exception filter
-│   ├── interceptor/          Global response interceptor
+│   ├── decorators/           e.g. @ApiWrappedResponse (Swagger helper)
+│   ├── filters/              Global exception filter
+│   ├── interceptors/         Global response interceptor
+│   ├── utils/                Pure helpers (e.g. duration parsing)
 │   └── index.ts              Public exports
 └── modules/                  Reusable Nest modules
     ├── prisma/               PrismaModule + PrismaService (global)
+    ├── mail/                 MailModule
     └── index.ts              Public exports
 
-prisma/                       Prisma schema and migrations
+prisma/                       Prisma schema, migrations, and seed.ts
 generated/                    DO NOT COMMIT — build artifacts only
 docker-compose.yml            Local MySQL setup
 
@@ -49,7 +59,19 @@ docker-compose.yml            Local MySQL setup
 ### Modules
 - Reusable, cross-feature modules go in `lib/modules/`
 - Feature-specific modules (e.g., `auth`, `users`, `health`) go directly in `src/`
+- Cross-feature helpers used only inside `src/` (guards, decorators, shared
+  repositories, shared types) go in `src/common/`, not `lib/`
 - Mark cross-cutting modules as `@Global()` (Prisma is already global)
+
+### DTOs
+- Every request body/query/param is a class in `src/<feature>/dto/`, named
+  `<action>.dto.ts` (e.g. `login.dto.ts`, `reset-password.dto.ts`)
+- Validate with `class-validator` decorators (`@IsEmail`, `@IsString`,
+  `@MinLength`, etc.) — the global `ValidationPipe` rejects unknown fields
+  (`whitelist + forbidNonWhitelisted`) and coerces types (`transform`)
+- Document with `@ApiProperty` / `@ApiPropertyOptional` so DTOs double as
+  Swagger schemas; include realistic `example` values
+- Don't define inline types or accept raw `Record<string, any>` in controllers
 
 ### Controllers and services
 - Controllers are thin — they just call services and return data
