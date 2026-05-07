@@ -1,9 +1,67 @@
 import { HttpStatus } from '@nestjs/common'
 import { ApiHttpResponse } from '@lib/core'
 
+// ─── User (1xxx) ──────────────────────────────────────
 export const USER_NOT_FOUND = new ApiHttpResponse(
-  HttpStatus.BAD_REQUEST, // 400
+  HttpStatus.BAD_REQUEST,
   1000,
   null,
   'User not found',
+)
+
+export const EMAIL_ALREADY_REGISTERED = new ApiHttpResponse(
+  HttpStatus.CONFLICT,
+  1001,
+  null,
+  'Email already registered',
+)
+
+// ─── Auth (2xxx) ──────────────────────────────────────
+export const INVALID_CREDENTIALS = new ApiHttpResponse(
+  HttpStatus.UNAUTHORIZED,
+  2000,
+  null,
+  'Invalid email or password',
+)
+
+export const ACCOUNT_NOT_ACTIVE = new ApiHttpResponse(
+  HttpStatus.FORBIDDEN,
+  2001,
+  null,
+  'Account is not active',
+)
+
+export const EMAIL_NOT_VERIFIED = new ApiHttpResponse(
+  HttpStatus.FORBIDDEN,
+  2002,
+  null,
+  'Email is not verified',
+)
+
+export const INVALID_OR_EXPIRED_TOKEN = new ApiHttpResponse(
+  HttpStatus.BAD_REQUEST,
+  2003,
+  null,
+  'Token is invalid or expired',
+)
+
+export const REFRESH_TOKEN_INVALID = new ApiHttpResponse(
+  HttpStatus.UNAUTHORIZED,
+  2004,
+  null,
+  'Refresh token is invalid or expired',
+)
+
+export const ACCOUNT_SUSPENDED = new ApiHttpResponse(
+  HttpStatus.FORBIDDEN,
+  2005,
+  null,
+  'Account is suspended',
+)
+
+export const CURRENT_PASSWORD_INCORRECT = new ApiHttpResponse(
+  HttpStatus.BAD_REQUEST,
+  2006,
+  null,
+  'Current password is incorrect',
 )
