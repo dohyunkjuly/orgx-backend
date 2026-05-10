@@ -1,8 +1,11 @@
 import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common'
+import { Reflector } from '@nestjs/core'
 import { JwtService } from '@nestjs/jwt'
 import type { Request } from 'express'
+import { ApiHttpError, ACCOUNT_SUSPENDED } from '@lib/core'
 import type { JwtPayload } from '../types/jwt-payload'
 import { UsersRepository } from '../repositories/users.repository'
+import { IS_PUBLIC_KEY } from '../decorators/public.decorator'
 
 const ACCESS_COOKIE_NAME = 'accessToken'
 
@@ -11,9 +14,16 @@ export class JwtAuthGuard implements CanActivate {
   constructor(
     private readonly jwt: JwtService,
     private readonly users: UsersRepository,
+    private readonly reflector: Reflector,
   ) {}
 
   async canActivate(ctx: ExecutionContext): Promise<boolean> {
+    const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
+      ctx.getHandler(),
+      ctx.getClass(),
+    ])
+    if (isPublic) return true
+
     const req = ctx.switchToHttp().getRequest<Request>()
     const token = this.extractToken(req)
     if (!token) throw new UnauthorizedException()
@@ -27,10 +37,9 @@ export class JwtAuthGuard implements CanActivate {
 
     const user = await this.users.findByIdSafe(payload.sub)
     if (!user) throw new UnauthorizedException()
-    if (user.status === 'SUSPENDED')
-      throw new UnauthorizedException()
+    if (user.status === 'SUSPENDED') throw new ApiHttpError(ACCOUNT_SUSPENDED)
 
-      // attach to request so @CurrentUser() can read it
+    // attach to request so @CurrentUser() can read it
     ;(req as Request & { user: typeof user }).user = user
     return true
   }

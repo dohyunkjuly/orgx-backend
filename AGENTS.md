@@ -79,6 +79,19 @@ docker-compose.yml            Local MySQL setup
 - Don't manually wrap success responses — the global interceptor handles it
 - Don't manually shape error responses — throw and let the global filter handle it
 
+### Auth and roles
+- `JwtAuthGuard` and `RolesGuard` are registered globally via `APP_GUARD` in
+  `auth.module.ts` — every route is auth-protected by default
+- Don't use `@UseGuards(JwtAuthGuard)` on controllers — it's already global
+- Mark public routes with `@Public()` from `src/common/decorators/public.decorator.ts`
+  (e.g. login, register, refresh, health check)
+- Restrict by role with `@Roles(Role.ADMIN, ...)` from
+  `src/common/decorators/roles.decorator.ts`; no decorator means "any
+  authenticated user"
+- Read the current user with `@CurrentUser() user: AuthUser`
+- Place new `APP_GUARD` providers in whichever module already provides the
+  guard's dependencies — don't move them to `app.module.ts`
+
 ### Response shape
 - All API responses follow `{ statusCode, code, data, message }`
 - Success: global `ApiResponseInterceptor` wraps return values automatically

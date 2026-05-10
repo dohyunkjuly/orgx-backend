@@ -5,6 +5,7 @@ import { MailService } from '@lib/modules'
 import {
   ApiHttpError,
   ACCOUNT_SUSPENDED,
+  ACCOUNT_PENDING,
   CURRENT_PASSWORD_INCORRECT,
   EMAIL_ALREADY_REGISTERED,
   INVALID_CREDENTIALS,
@@ -96,6 +97,7 @@ export class AuthService {
 
     if (!user.isEmailVerified) throw new ApiHttpError(EMAIL_NOT_VERIFIED)
 
+    if (user.status === 'PENDING') throw new ApiHttpError(ACCOUNT_PENDING)
     if (user.status === 'SUSPENDED') throw new ApiHttpError(ACCOUNT_SUSPENDED)
 
     const accessToken = this.signAccessToken(user)

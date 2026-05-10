@@ -65,3 +65,18 @@ export const CURRENT_PASSWORD_INCORRECT = new ApiHttpResponse(
   null,
   'Current password is incorrect',
 )
+
+export const ACCOUNT_PENDING = new ApiHttpResponse(
+  HttpStatus.FORBIDDEN,
+  2007,
+  null,
+  'Account is pending admin approval',
+)
+
+// ─── Permission (4xxx) ────────────────────────────────
+export const FORBIDDEN_ROLE = new ApiHttpResponse(
+  HttpStatus.FORBIDDEN,
+  4000,
+  null,
+  'Insufficient role permissions',
+)
