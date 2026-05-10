@@ -11,6 +11,7 @@ import { LoginDto } from './dto/login.dto'
 import { RegisterDto } from './dto/register.dto'
 import { ResendVerificationDto } from './dto/resend-verification.dto'
 import { ResetPasswordDto } from './dto/reset-password.dto'
+import { SessionUserDto } from './dto/session-user.dto'
 import { UserResponseDto } from './dto/user-response.dto'
 import { VerifyEmailDto } from './dto/verify-email.dto'
 import type { AuthUser } from '../common/types/user'
@@ -109,8 +110,8 @@ export class AuthController {
 
   @Get('me')
   @ApiCookieAuth()
-  @ApiOperation({ summary: 'Get currently authenticated user' })
-  @ApiWrappedResponse(UserResponseDto)
+  @ApiOperation({ summary: 'Get current session info (minimal — for header/route guards)' })
+  @ApiWrappedResponse(SessionUserDto)
   async getMe(@CurrentUser() user: AuthUser) {
     return this.authService.getMe(user.id)
   }

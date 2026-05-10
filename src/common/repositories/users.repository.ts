@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import { PrismaService } from '@lib/modules'
-import { Prisma, User } from '@prisma/client'
+import { MemberStatus, Prisma, Role, User } from '@prisma/client'
 
 @Injectable()
 export class UsersRepository {
@@ -24,6 +24,40 @@ export class UsersRepository {
     })
   }
 
+  async list(args: {
+    skip: number
+    take: number
+    status?: MemberStatus
+    role?: Role
+    search?: string
+    excludeId?: string
+  }) {
+    const where: Prisma.UserWhereInput = {
+      ...(args.excludeId && { id: { not: args.excludeId } }),
+      ...(args.status && { status: args.status }),
+      ...(args.role && { role: args.role }),
+      ...(args.search && {
+        OR: [
+          { email: { contains: args.search } },
+          { fullName: { contains: args.search } },
+        ],
+      }),
+    }
+
+    const [items, total] = await this.prisma.$transaction([
+      this.prisma.user.findMany({
+        where,
+        skip: args.skip,
+        take: args.take,
+        omit: { passwordHash: true },
+        orderBy: { createdAt: 'desc' },
+      }),
+      this.prisma.user.count({ where }),
+    ])
+
+    return { items, total }
+  }
+
   create(data: Prisma.UserCreateInput) {
     return this.prisma.user.create({
       data,
@@ -35,6 +69,14 @@ export class UsersRepository {
     return this.prisma.user.update({
       where: { id },
       data: { passwordHash },
+    })
+  }
+
+  updateStatus(id: string, status: MemberStatus) {
+    return this.prisma.user.update({
+      where: { id },
+      data: { status },
+      omit: { passwordHash: true },
     })
   }
 

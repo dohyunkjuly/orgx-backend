@@ -156,7 +156,13 @@ export class AuthService {
   async getMe(userId: string) {
     const user = await this.users.findByIdSafe(userId)
     if (!user) throw new ApiHttpError(USER_NOT_FOUND)
-    return user
+    return {
+      id: user.id,
+      email: user.email,
+      role: user.role,
+      status: user.status,
+      isEmailVerified: user.isEmailVerified,
+    }
   }
 
   // ───────────────────── email verification ─────────────────────
