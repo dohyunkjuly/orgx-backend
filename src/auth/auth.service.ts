@@ -13,6 +13,7 @@ import {
   REFRESH_TOKEN_INVALID,
   USER_NOT_FOUND,
   EMAIL_NOT_VERIFIED,
+  ACCOUNT_REJECTED,
 } from '@lib/core'
 import * as bcrypt from 'bcrypt'
 import { randomBytes, createHash } from 'crypto'
@@ -99,6 +100,7 @@ export class AuthService {
 
     if (user.status === 'PENDING') throw new ApiHttpError(ACCOUNT_PENDING)
     if (user.status === 'SUSPENDED') throw new ApiHttpError(ACCOUNT_SUSPENDED)
+    if (user.status === 'REJECTED') throw new ApiHttpError(ACCOUNT_REJECTED)
 
     const accessToken = this.signAccessToken(user)
     const { token: refreshToken, expiresAt } = await this.issueRefreshToken(user.id)

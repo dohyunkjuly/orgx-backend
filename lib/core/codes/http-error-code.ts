@@ -66,6 +66,13 @@ export const CURRENT_PASSWORD_INCORRECT = new ApiHttpResponse(
   'Current password is incorrect',
 )
 
+export const ACCOUNT_REJECTED = new ApiHttpResponse(
+  HttpStatus.FORBIDDEN,
+  2008,
+  null,
+  'Account application rejected',
+)
+
 export const ACCOUNT_PENDING = new ApiHttpResponse(
   HttpStatus.FORBIDDEN,
   2007,
