@@ -207,7 +207,7 @@ model Document {
   tags        String? // comma-separated, or pull out to a relation if you want better search
 
   // S3
-  fileKey   String // object key in Hetzner bucket
+  fileKey   String // object key in bucket, e.g. "documents/<doc.id>/<filename>"
   fileName  String // original upload filename
   mimeType  String
   sizeBytes Int

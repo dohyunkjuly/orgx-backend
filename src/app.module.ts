@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
-import { PrismaModule, MailModule } from '@lib/modules'
+import { PrismaModule, MailModule, StorageModule } from '@lib/modules'
 import { AuthModule } from './auth/auth.module'
 import { HealthModule } from './health/health.module'
 import { UsersModule } from './users/users.module'
@@ -13,6 +13,7 @@ import { UsersModule } from './users/users.module'
     }),
     PrismaModule,
     MailModule,
+    StorageModule,
     AuthModule,
     HealthModule,
     UsersModule,
