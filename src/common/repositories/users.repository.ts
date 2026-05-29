@@ -80,6 +80,14 @@ export class UsersRepository {
     })
   }
 
+  updateProfile(id: string, data: Prisma.UserUpdateInput) {
+    return this.prisma.user.update({
+      where: { id },
+      data,
+      omit: { passwordHash: true },
+    })
+  }
+
   markEmailVerified(id: string) {
     return this.prisma.user.update({
       where: { id },
