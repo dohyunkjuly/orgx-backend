@@ -7,6 +7,7 @@ import { Roles } from '../common/decorators/roles.decorator'
 import type { AuthUser } from '../common/types/user'
 import { ListUsersDto } from './dto/list-users.dto'
 import { UpdateProfileDto } from './dto/update-profile.dto'
+import { UpdateUserRoleDto } from './dto/update-user-role.dto'
 import { UpdateUserStatusDto } from './dto/update-user-status.dto'
 import { UsersService } from './users.service'
 
@@ -45,7 +46,13 @@ export class UsersController {
 
   @Patch(':id/status')
   @ApiOperation({ summary: '[Admin] Update a user\'s status' })
-  updateStatus(@Param('id') id: string, @Body() dto: UpdateUserStatusDto) {
-    return this.users.updateStatus(id, dto.status)
+  updateStatus(@Param('id') id: string, @Body() dto: UpdateUserStatusDto, @CurrentUser() user: AuthUser) {
+    return this.users.updateStatus(id, dto.status, user.id)
+  }
+
+  @Patch(':id/role')
+  @ApiOperation({ summary: '[Admin] Promote or demote a user\'s role' })
+  updateRole(@Param('id') id: string, @Body() dto: UpdateUserRoleDto, @CurrentUser() user: AuthUser) {
+    return this.users.updateRole(id, dto.role, user.id)
   }
 }
