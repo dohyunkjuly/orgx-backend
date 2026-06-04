@@ -3,6 +3,7 @@ import { ApiHttpError, USER_NOT_FOUND } from '@lib/core'
 import type { MemberStatus } from '@prisma/client'
 import { UsersRepository } from '../common/repositories/users.repository'
 import { ListUsersDto } from './dto/list-users.dto'
+import { UpdateProfileDto } from './dto/update-profile.dto'
 
 @Injectable()
 export class UsersService {
@@ -32,5 +33,9 @@ export class UsersService {
     const user = await this.repo.findByIdSafe(id)
     if (!user) throw new ApiHttpError(USER_NOT_FOUND)
     return this.repo.updateStatus(id, status)
+  }
+
+  updateProfile(id: string, dto: UpdateProfileDto) {
+    return this.repo.updateProfile(id, dto)
   }
 }

@@ -13,8 +13,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-
-// ─── Enums ────────────────────────────────────
+// ─── Enums ────────────────────────────────────────────────
 
 enum Role {
   ADMIN
@@ -34,7 +33,43 @@ enum MemberStatus {
   REJECTED
 }
 
-// ─── User ─────────────────────────────────────
+enum NotificationType {
+  DOCUMENT_UPLOADED
+  BALLOT_OPENED
+  BALLOT_CLOSED
+  MEETING_CREATED
+  MEETING_UPDATED
+  MEETING_CANCELLED
+  MEETING_REMINDER
+}
+
+enum BallotType {
+  SINGLE_CHOICE // pick exactly one option
+  MULTIPLE_CHOICE // pick up to N options (N set by admin via maxSelections)
+  // Future: RANKED, APPROVAL, etc. — schema and Vote table already support
+  // multiple rows per voter with optional rank field.
+}
+
+enum BallotStatus {
+  DRAFT
+  OPEN
+  CLOSED
+}
+
+enum MeetingStatus {
+  SCHEDULED
+  CANCELLED
+  COMPLETED
+}
+
+enum TransactionType {
+  INCOME
+  EXPENSE
+}
+
+// ============================================================
+// USER (existing — included for reference)
+// ============================================================
 
 model User {
   id              String       @id @default(cuid(2))
@@ -45,9 +80,9 @@ model User {
   isEmailVerified Boolean      @default(false)
 
   // Profile
-  fullName     String
-  gender       Gender
-  phone        String?
+  fullName String
+  gender   Gender
+  phone    String?
 
   // Academic details
   qualification String
@@ -57,43 +92,50 @@ model User {
   designation   String
 
   // Timestamps
-  joinedAt     DateTime     @default(now())
-  createdAt    DateTime     @default(now())
-  updatedAt    DateTime     @updatedAt
+  joinedAt  DateTime @default(now())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
+  // Relations
   refreshTokens           UserRefreshToken[]
   emailVerificationTokens UserEmailVerificationToken[]
   passwordResetTokens     UserPasswordResetToken[]
+
+  notifications        Notification[]
+  uploadedDocuments    Document[]            @relation("DocumentUploader")
+  createdBallots       Ballot[]              @relation("BallotCreator")
+  ballotParticipations BallotParticipation[]
+  createdMeetings      Meeting[]             @relation("MeetingCreator")
+  recordedTransactions Transaction[]         @relation("TransactionRecorder")
+  auditLogs            AuditLog[]
 
   @@map("users")
 }
 
 model UserRefreshToken {
-  id        String   @id @default(cuid(2))
+  id        String    @id @default(cuid(2))
   userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  tokenHash String   @unique
+  tokenHash String    @unique
   expiresAt DateTime
   revokedAt DateTime?
+  createdAt DateTime  @default(now())
 
-  createdAt DateTime @default(now())
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([expiresAt])
-  @@map("user_refresh_token")
+  @@map("user_refresh_tokens")
 }
 
 model UserEmailVerificationToken {
   id         String    @id @default(cuid(2))
   userId     String
-  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-
   tokenHash  String    @unique
   expiresAt  DateTime
   consumedAt DateTime?
-
   createdAt  DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([expiresAt])
@@ -103,28 +145,359 @@ model UserEmailVerificationToken {
 model UserPasswordResetToken {
   id         String    @id @default(cuid(2))
   userId     String
-  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-
   tokenHash  String    @unique
   expiresAt  DateTime
   consumedAt DateTime?
-
   createdAt  DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([expiresAt])
   @@map("user_password_reset_tokens")
 }
 
-// ─── Document Category ────────────────────────
+// ============================================================
+// NOTIFICATIONS (EP-04)
+// ============================================================
+// Fire-and-forget fan-out from NotificationService.
+// `eventId` lets the same logical event (e.g. "ballot X opened")
+// produce idempotent rows — a unique (userId, eventId) constraint
+// makes re-triggering harmless.
+
+model Notification {
+  id        String           @id @default(cuid(2))
+  userId    String
+  type      NotificationType
+  eventId   String // logical event ID, e.g. "ballot:abc123:opened"
+  title     String
+  body      String           @db.Text
+  readAt    DateTime?
+  createdAt DateTime         @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, eventId]) // idempotency
+  @@index([userId, readAt]) // unread badge query
+  @@index([userId, createdAt(sort: Desc)]) // list newest-first
+  @@map("notifications")
+}
+
+// ============================================================
+// DOCUMENTS (EP-06)
+// ============================================================
+// Files live in S3 (Hetzner). DB stores only metadata + S3 key.
 
 model DocumentCategory {
+  id          String   @id @default(cuid(2))
+  name        String   @unique
+  description String?  @db.Text
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  documents Document[]
+
+  @@map("document_categories")
+}
+
+model Document {
   id          String  @id @default(cuid(2))
-  name        String  @unique
-  description String?
+  title       String
+  description String? @db.Text
+  tags        String? // comma-separated, or pull out to a relation if you want better search
+
+  // S3
+  fileKey   String // object key in bucket, e.g. "documents/<doc.id>/<filename>"
+  fileName  String // original upload filename
+  mimeType  String
+  sizeBytes Int
+
+  // Foreign keys
+  categoryId   String
+  uploadedById String
+
+  // Soft delete
+  deletedAt DateTime?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@map("document_categories")
+  category   DocumentCategory @relation(fields: [categoryId], references: [id])
+  uploadedBy User             @relation("DocumentUploader", fields: [uploadedById], references: [id])
+
+  @@index([categoryId])
+  @@index([uploadedById])
+  @@index([deletedAt])
+  @@fulltext([title, description, tags]) // MySQL FULLTEXT for keyword search
+  @@map("documents")
+}
+
+// ============================================================
+// VOTING (EP-07)
+// ============================================================
+// CONFIDENTIALITY DESIGN:
+// We split voter identity from vote choice into TWO tables with
+// NO foreign key linking the actual choice to the voter:
+//
+//   ballot_participations — who has voted (voterId, ballotId)
+//   votes                 — what was voted for (ballotId, optionId)
+//
+// You can prove a member voted (to prevent double-voting) and
+// you can count results, but you CANNOT directly query
+// "what did user X vote for?".
+
+model Ballot {
+  id          String  @id @default(cuid(2))
+  title       String
+  description String? @db.Text
+  question    String  @db.Text
+
+  type BallotType @default(SINGLE_CHOICE)
+
+  // For MULTIPLE_CHOICE: max options a voter may select.
+  // Null for SINGLE_CHOICE. Future ballot types (e.g. RANKED) may
+  // reuse this field or add their own (e.g. requiredRankings).
+  maxSelections Int?
+
+  status   BallotStatus @default(DRAFT)
+  startsAt DateTime
+  endsAt   DateTime
+
+  createdById String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  createdBy      User                  @relation("BallotCreator", fields: [createdById], references: [id])
+  options        BallotOption[]
+  participations BallotParticipation[]
+  votes          Vote[]
+
+  @@index([status])
+  @@index([endsAt])
+  @@index([createdById])
+  @@map("ballots")
+}
+
+model BallotOption {
+  id       String @id @default(cuid(2))
+  ballotId String
+
+  label    String
+  position Int // display order
+
+  ballot Ballot @relation(fields: [ballotId], references: [id], onDelete: Cascade)
+  votes  Vote[]
+
+  @@index([ballotId])
+  @@map("ballot_options")
+}
+
+// "This user has voted in this ballot" — flag table. No link to choice.
+// Same table works for all ballot types (single, multi, future ranked).
+model BallotParticipation {
+  id       String @id @default(cuid(2))
+  ballotId String
+  voterId  String
+
+  votedAt DateTime @default(now())
+
+  ballot Ballot @relation(fields: [ballotId], references: [id], onDelete: Cascade)
+  voter  User   @relation(fields: [voterId], references: [id], onDelete: Cascade)
+
+  @@unique([ballotId, voterId]) // one participation per voter per ballot
+  @@index([voterId])
+  @@map("ballot_participations")
+}
+
+// The actual choice rows. Same table for all ballot types — what differs
+// is how many rows each voter inserts:
+//   SINGLE_CHOICE:   exactly 1 row per voter
+//   MULTIPLE_CHOICE: 1..maxSelections rows per voter
+//   (future RANKED:  N rows per voter, using the nullable `rank` column)
+//
+// CRITICAL: there is intentionally NO voter FK here. You can count by
+// option, but you CANNOT directly query "what did user X vote for?".
+// Voter identity lives only in BallotParticipation.
+model Vote {
+  id       String @id @default(cuid(2))
+  ballotId String
+  optionId String
+
+  // Nullable — reserved for future ranked ballots (1 = first choice, 2 = second, ...).
+  // Always null for SINGLE_CHOICE and MULTIPLE_CHOICE ballots.
+  rank Int?
+
+  castAt DateTime @default(now())
+
+  ballot Ballot       @relation(fields: [ballotId], references: [id], onDelete: Cascade)
+  option BallotOption @relation(fields: [optionId], references: [id], onDelete: Cascade)
+
+  @@index([ballotId])
+  @@index([optionId])
+  @@map("votes")
+}
+
+// ============================================================
+// MEETINGS (EP-09)
+// ============================================================
+
+model Meeting {
+  id       String  @id @default(cuid(2))
+  title    String
+  agenda   String? @db.Text
+  location String
+
+  startsAt DateTime
+  endsAt   DateTime
+
+  status MeetingStatus @default(SCHEDULED)
+
+  createdById String
+
+  reminderSentAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  createdBy User            @relation("MeetingCreator", fields: [createdById], references: [id])
+  minutes   MeetingMinutes?
+
+  @@index([startsAt])
+  @@index([status])
+  @@index([createdById])
+  @@map("meetings")
+}
+
+model MeetingMinutes {
+  id        String @id @default(cuid(2))
+  meetingId String @unique
+
+  content String @db.LongText // rich text from the editor (HTML or Markdown)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  meeting     Meeting             @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+  attachments MeetingAttachment[]
+
+  @@map("meeting_minutes")
+}
+
+model MeetingAttachment {
+  id               String @id @default(cuid(2))
+  meetingMinutesId String
+
+  fileKey     String
+  fileName  String
+  mimeType  String
+  sizeBytes Int
+
+  createdAt DateTime @default(now())
+
+  meetingMinutes MeetingMinutes @relation(fields: [meetingMinutesId], references: [id], onDelete: Cascade)
+
+  @@index([meetingMinutesId])
+  @@map("meeting_attachments")
+}
+
+// ============================================================
+// FINANCE (EP-10)
+// ============================================================
+// Amounts stored as Decimal — NEVER use Float for money.
+// `type` distinguishes income vs expense (instead of signed amounts).
+
+model TransactionCategory {
+  id        String          @id @default(cuid(2))
+  name      String
+  type      TransactionType // a category is either for income or expense
+  createdAt DateTime        @default(now())
+
+  transactions Transaction[]
+
+  @@unique([name, type]) // "Dues" can exist for INCOME without clashing with expense names
+  @@map("transaction_categories")
+}
+
+model Transaction {
+  id          String          @id @default(cuid(2))
+  type        TransactionType
+  amount      Decimal         @db.Decimal(12, 2)
+  occurredOn  DateTime // the business date of the transaction (NOT createdAt)
+  description String?         @db.Text
+
+  // Counterparty (payer for INCOME, payee for EXPENSE)
+  counterparty String?
+
+  // Optional receipt (S3 key)
+  receiptS3Key String?
+
+  // Foreign keys
+  categoryId   String
+  recordedById String
+
+  // Soft delete (audit-friendly)
+  deletedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  category   TransactionCategory @relation(fields: [categoryId], references: [id])
+  recordedBy User                @relation("TransactionRecorder", fields: [recordedById], references: [id])
+
+  @@index([type, occurredOn])
+  @@index([categoryId])
+  @@index([recordedById])
+  @@index([deletedAt])
+  @@map("transactions")
+}
+
+// ============================================================
+// AUDIT LOG (cross-cutting — used by admin actions)
+// ============================================================
+// Generic, queryable. Use for member approval, suspension,
+// role changes, transaction edits, etc.
+
+model AuditLog {
+  id String @id @default(cuid(2))
+
+  actorId String // who performed the action
+
+  action      String // e.g. "USER_APPROVED", "TRANSACTION_DELETED", "BALLOT_OPENED"
+  targetType  String // e.g. "User", "Transaction", "Ballot"
+  targetId    String // ID of the target
+  targetLabel String? // human-readable snapshot, e.g. "Jane Smith", "Annual budget vote"
+
+  metadata Json? // free-form: { fromStatus: "PENDING", toStatus: "ACTIVE" }
+
+  createdAt DateTime @default(now())
+
+  actor User @relation(fields: [actorId], references: [id])
+
+  @@index([actorId])
+  @@index([targetType, targetId])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+model WhatsAppAnalysis {
+  id           String  @id @default(cuid(2))
+  uploadedById String
+  fileName     String
+  fileKey      String? // optional: keep the raw export in S3 if you ever want to re-analyze
+
+  // Date range covered by this export
+  periodStart  DateTime
+  periodEnd    DateTime
+  messageCount Int
+
+  // Pre-computed analytics as JSON
+  // (active users, hourly heatmap, daily counts, sentiment breakdown, etc.)
+  analytics Json
+
+  uploadedAt DateTime @default(now())
+
+  @@index([uploadedById])
+  @@index([uploadedAt])
+  @@map("whatsapp_analyses")
 }

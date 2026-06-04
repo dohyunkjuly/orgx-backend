@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Patch, Post } from '@nestjs/common'
+import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common'
 import { ApiCookieAuth, ApiOperation, ApiTags } from '@nestjs/swagger'
 import { Role } from '@prisma/client'
 import { Roles } from '../common/decorators/roles.decorator'
@@ -40,7 +40,6 @@ export class DocCategoriesController {
 
   @Delete(':id')
   @Roles(Role.ADMIN)
-  @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: '[Admin] Delete a document category' })
   delete(@Param('id') id: string) {
     return this.service.delete(id)

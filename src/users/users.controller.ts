@@ -6,6 +6,7 @@ import { CurrentUser } from '../common/decorators/current-user.decorator'
 import { Roles } from '../common/decorators/roles.decorator'
 import type { AuthUser } from '../common/types/user'
 import { ListUsersDto } from './dto/list-users.dto'
+import { UpdateProfileDto } from './dto/update-profile.dto'
 import { UpdateUserStatusDto } from './dto/update-user-status.dto'
 import { UsersService } from './users.service'
 
@@ -27,6 +28,13 @@ export class UsersController {
   @ApiOperation({ summary: 'Get full profile of the current user' })
   getMyProfile(@CurrentUser() user: AuthUser) {
     return this.users.getById(user.id)
+  }
+
+  @Patch('me')
+  @Roles(Role.ADMIN, Role.MEMBER)
+  @ApiOperation({ summary: 'Update own profile (email is read-only)' })
+  updateMyProfile(@CurrentUser() user: AuthUser, @Body() dto: UpdateProfileDto) {
+    return this.users.updateProfile(user.id, dto)
   }
 
   @Get(':id')
