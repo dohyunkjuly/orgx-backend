@@ -115,3 +115,16 @@ model UserPasswordResetToken {
   @@index([expiresAt])
   @@map("user_password_reset_tokens")
 }
+
+// ─── Document Category ────────────────────────
+
+model DocumentCategory {
+  id          String  @id @default(cuid(2))
+  name        String  @unique
+  description String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("document_categories")
+}
