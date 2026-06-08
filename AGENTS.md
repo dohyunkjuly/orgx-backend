@@ -79,6 +79,16 @@ docker-compose.yml            Local MySQL setup
 - Don't manually wrap success responses — the global interceptor handles it
 - Don't manually shape error responses — throw and let the global filter handle it
 
+### Swagger docs on endpoints
+- Add `@ApiOperation({ summary })` to every endpoint. This only sets the
+  route's label/description — it does NOT define the response schema.
+- The response type is shown by `@ApiWrappedResponse(SomeDto)` (from
+  `@lib/core`), NOT by `@ApiOperation`. It documents the DTO inside the
+  standard `{ statusCode, code, data, message }` envelope.
+- Add `@ApiWrappedResponse(SomeDto)` only to endpoints that return real data
+  (an entity, a list, etc.). Endpoints that return a trivial `{ ok: true }`
+  don't need it — there's no meaningful DTO to document.
+
 ### Auth and roles
 - `JwtAuthGuard` and `RolesGuard` are registered globally via `APP_GUARD` in
   `auth.module.ts` — every route is auth-protected by default
