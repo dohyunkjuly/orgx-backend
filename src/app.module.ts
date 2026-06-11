@@ -4,6 +4,8 @@ import { PrismaModule, MailModule, StorageModule } from '@lib/modules'
 import { AuthModule } from './auth/auth.module'
 import { DocCategoriesModule } from './doc-categories/doc-categories.module'
 import { HealthModule } from './health/health.module'
+import { NotificationsModule } from './notifications/notifications.module'
+import { SocketModule } from './socket/socket.module'
 import { UsersModule } from './users/users.module'
 
 @Module({
@@ -19,6 +21,8 @@ import { UsersModule } from './users/users.module'
     HealthModule,
     UsersModule,
     DocCategoriesModule,
+    NotificationsModule,
+    SocketModule,
   ],
 })
 export class AppModule { }

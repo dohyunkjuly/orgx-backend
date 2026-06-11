@@ -80,6 +80,14 @@ export class UsersRepository {
     })
   }
 
+  updateRole(id: string, role: Role) {
+    return this.prisma.user.update({
+      where: { id },
+      data: { role },
+      omit: { passwordHash: true },
+    })
+  }
+
   updateProfile(id: string, data: Prisma.UserUpdateInput) {
     return this.prisma.user.update({
       where: { id },
