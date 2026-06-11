@@ -80,6 +80,21 @@ export const ACCOUNT_PENDING = new ApiHttpResponse(
   'Account is pending admin approval',
 )
 
+// ─── Resource (5xxx) ──────────────────────────────────
+export const DOC_CATEGORY_NOT_FOUND = new ApiHttpResponse(
+  HttpStatus.NOT_FOUND,
+  5000,
+  null,
+  'Document category not found',
+)
+
+export const DOC_CATEGORY_NAME_TAKEN = new ApiHttpResponse(
+  HttpStatus.CONFLICT,
+  5001,
+  null,
+  'A document category with that name already exists',
+)
+
 // ─── Permission (4xxx) ────────────────────────────────
 export const FORBIDDEN_ROLE = new ApiHttpResponse(
   HttpStatus.FORBIDDEN,
