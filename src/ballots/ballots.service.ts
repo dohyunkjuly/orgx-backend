@@ -1,28 +1,23 @@
 import { Injectable } from '@nestjs/common';
 import { CreateBallotDto } from './dto/create-ballot.dto';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, BallotStatus } from '@prisma/client'; // <-- Added BallotStatus here
 
 const prisma = new PrismaClient();
 
 @Injectable()
 export class BallotsService {
   
-  // 1. We added `userId: string` as the second parameter here
   async createBallot(dto: CreateBallotDto, userId: string) {
     return prisma.ballot.create({
       data: {
         title: dto.title,
         description: dto.description,
-        
         question: dto.question,
         startsAt: new Date(dto.startsAt),
         endsAt: new Date(dto.endsAt),
-
         createdBy: {
-          // 2. We changed `dto.createdBy` to `userId` here
           connect: { id: userId },
         },
-        
         options: {
           create: dto.options.map((optionString, index) => ({
             label: optionString,
@@ -32,6 +27,34 @@ export class BallotsService {
       },
       include: {
         options: true, 
+      },
+    });
+  }
+
+
+  // 1. Fetch all currently opened ballots
+  async getOpenedBallots() {
+    return prisma.ballot.findMany({
+      where: {
+        status: BallotStatus.OPEN,
+      },
+      include: {
+        options: true, // Let the admin see the options too
+      },
+      orderBy: {
+        endsAt: 'asc', // Show the ones closing soonest at the top
+      },
+    });
+  }
+
+  // 2. Close a specific ballot by its ID
+  async closeBallot(ballotId: string) {
+    return prisma.ballot.update({
+      where: {
+        id: ballotId,
+      },
+      data: {
+        status: BallotStatus.CLOSED,
       },
     });
   }
