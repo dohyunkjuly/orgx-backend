@@ -9,7 +9,10 @@ import { ApiHttpResponse } from '../api/api-http-response';
 
 @Injectable()
 export class ApiResponseInterceptor implements NestInterceptor {
-  intercept(_context: ExecutionContext, next: CallHandler): Observable<unknown> {
+  intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
+    // Only wrap HTTP responses.
+    if (context.getType() !== 'http') return next.handle();
+
     return next.handle().pipe(
       map((data) => {
         // If the controller already returned an ApiHttpResponse, don't double-wrap

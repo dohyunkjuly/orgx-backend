@@ -28,7 +28,17 @@ export class HttpExceptionFilter implements ExceptionFilter {
     // Standard NestJS HttpException
     if (exception instanceof HttpException) {
       const status = exception.getStatus()
-      const apiResponse = new ApiHttpResponse(status, status, null, exception.message)
+      // class-validator (via ValidationPipe) puts field errors in the response
+      // body's `message` (string | string[]); fall back to the generic message.
+      const res = exception.getResponse()
+      const detail =
+        typeof res === 'object' && res !== null && 'message' in res
+          ? (res as { message: string | string[] }).message
+          : undefined
+      const message = Array.isArray(detail)
+        ? detail.join(', ')
+        : (detail ?? exception.message)
+      const apiResponse = new ApiHttpResponse(status, status, null, message)
       response.status(status).json(apiResponse)
       return
     }
