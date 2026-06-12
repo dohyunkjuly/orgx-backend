@@ -1,36 +1,33 @@
-import { IsString, IsNotEmpty, IsOptional, IsArray, ArrayMinSize, IsDateString } from 'class-validator';
+import { IsString, IsNotEmpty, IsDateString, IsArray, ArrayMinSize, IsOptional } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateBallotDto {
+  @ApiProperty({ example: 'Sprint 2 Priority' })
   @IsString()
   @IsNotEmpty()
   title: string;
 
-  // NEW: The actual question being asked
+  @ApiProperty({ example: 'Which feature should we build next?' })
   @IsString()
   @IsNotEmpty()
   question: string;
 
+  @ApiPropertyOptional({ example: 'Vote on the next sprint priority.' })
   @IsString()
   @IsOptional()
   description?: string;
 
-  // NEW: When voting opens
+  @ApiProperty({ example: '2024-05-01T10:00:00Z' })
   @IsDateString()
-  @IsNotEmpty()
   startsAt: string;
 
-  // NEW: When voting closes
+  @ApiProperty({ example: '2024-05-15T10:00:00Z' })
   @IsDateString()
-  @IsNotEmpty()
   endsAt: string;
 
-  // NEW: The ID of the admin making the ballot (we will fake this for now)
-  @IsString()
-  @IsNotEmpty()
-  createdBy: string;
-
+  @ApiProperty({ example: ['Dark Mode', 'Email Notifications', 'User Profiles'] })
   @IsArray()
   @IsString({ each: true })
-  @ArrayMinSize(2, { message: 'A ballot must have at least 2 voting options.' })
+  @ArrayMinSize(2)
   options: string[];
 }

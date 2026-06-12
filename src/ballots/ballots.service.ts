@@ -7,20 +7,20 @@ const prisma = new PrismaClient();
 @Injectable()
 export class BallotsService {
   
-  async createBallot(dto: CreateBallotDto) {
+  // 1. We added `userId: string` as the second parameter here
+  async createBallot(dto: CreateBallotDto, userId: string) {
     return prisma.ballot.create({
       data: {
         title: dto.title,
         description: dto.description,
         
-        // NEW: Mapping the 4 missing fields
         question: dto.question,
         startsAt: new Date(dto.startsAt),
         endsAt: new Date(dto.endsAt),
 
-        // Change this one line:
         createdBy: {
-          connect: { id: dto.createdBy },
+          // 2. We changed `dto.createdBy` to `userId` here
+          connect: { id: userId },
         },
         
         options: {
