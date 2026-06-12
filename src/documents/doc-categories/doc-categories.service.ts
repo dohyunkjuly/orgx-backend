@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import { ApiHttpError, DOC_CATEGORY_NAME_TAKEN, DOC_CATEGORY_NOT_FOUND } from '@lib/core'
-import { DocCategoriesRepository } from '../common/repositories/doc-categories.repository'
+import { DocCategoriesRepository } from '../../common/repositories/doc-categories.repository'
 import type { CreateDocCategoryDto } from './dto/create-doc-category.dto'
 import type { UpdateDocCategoryDto } from './dto/update-doc-category.dto'
 
