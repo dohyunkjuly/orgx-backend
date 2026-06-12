@@ -7,6 +7,7 @@ import { HealthModule } from './health/health.module'
 import { NotificationsModule } from './notifications/notifications.module'
 import { SocketModule } from './socket/socket.module'
 import { UsersModule } from './users/users.module'
+import { BallotsModule } from './ballots/ballots.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { UsersModule } from './users/users.module'
     AuthModule,
     HealthModule,
     UsersModule,
+    BallotsModule,
     DocCategoriesModule,
     NotificationsModule,
     SocketModule,
