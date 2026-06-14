@@ -1,7 +1,7 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common'
 import { ApiCookieAuth, ApiOperation, ApiTags } from '@nestjs/swagger'
 import { Role } from '@prisma/client'
-import { Roles } from '../../common/decorators/roles.decorator'
+import { Roles } from '../common/decorators/roles.decorator'
 import { DocCategoriesService } from './doc-categories.service'
 import { CreateDocCategoryDto } from './dto/create-doc-category.dto'
 import { UpdateDocCategoryDto } from './dto/update-doc-category.dto'
