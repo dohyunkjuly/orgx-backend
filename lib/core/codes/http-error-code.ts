@@ -95,6 +95,20 @@ export const DOC_CATEGORY_NAME_TAKEN = new ApiHttpResponse(
   'A document category with that name already exists',
 )
 
+export const DOCUMENT_NOT_FOUND = new ApiHttpResponse(
+  HttpStatus.NOT_FOUND,
+  5002,
+  null,
+  'Document not found',
+)
+
+export const DOC_CATEGORY_IN_USE = new ApiHttpResponse(
+  HttpStatus.CONFLICT,
+  5003,
+  null,
+  'Cannot delete a category that still has documents',
+)
+
 // ─── Permission (4xxx) ────────────────────────────────
 export const FORBIDDEN_ROLE = new ApiHttpResponse(
   HttpStatus.FORBIDDEN,

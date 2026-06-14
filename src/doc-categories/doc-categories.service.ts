@@ -1,12 +1,21 @@
 import { Injectable } from '@nestjs/common'
-import { ApiHttpError, DOC_CATEGORY_NAME_TAKEN, DOC_CATEGORY_NOT_FOUND } from '@lib/core'
+import {
+  ApiHttpError,
+  DOC_CATEGORY_IN_USE,
+  DOC_CATEGORY_NAME_TAKEN,
+  DOC_CATEGORY_NOT_FOUND,
+} from '@lib/core'
 import { DocCategoriesRepository } from '../common/repositories/doc-categories.repository'
+import { DocumentsRepository } from '../common/repositories/documents.repository'
 import type { CreateDocCategoryDto } from './dto/create-doc-category.dto'
 import type { UpdateDocCategoryDto } from './dto/update-doc-category.dto'
 
 @Injectable()
 export class DocCategoriesService {
-  constructor(private readonly repo: DocCategoriesRepository) {}
+  constructor(
+    private readonly repo: DocCategoriesRepository,
+    private readonly documents: DocumentsRepository,
+  ) {}
 
   findAll() {
     return this.repo.findAll()
@@ -39,6 +48,10 @@ export class DocCategoriesService {
   async delete(id: string) {
     const category = await this.repo.findById(id)
     if (!category) throw new ApiHttpError(DOC_CATEGORY_NOT_FOUND)
+
+    const inUse = await this.documents.countByCategory(id)
+    if (inUse > 0) throw new ApiHttpError(DOC_CATEGORY_IN_USE)
+
     await this.repo.delete(id)
   }
 }

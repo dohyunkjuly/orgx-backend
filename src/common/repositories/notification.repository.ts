@@ -44,6 +44,34 @@ export class NotificationRepository {
     })
   }
 
+  /**
+   * Bulk-creates the same notification for many users in a single INSERT
+   * (skips users that already have a row for this eventId), then returns the
+   * rows for this eventId so they can be pushed over WebSocket.
+   */
+  async createForUsers(data: {
+    userIds: string[]
+    type: NotificationType
+    eventId: string
+    title: string
+    body: string
+  }) {
+    await this.prisma.notification.createMany({
+      data: data.userIds.map((userId) => ({
+        userId,
+        type: data.type,
+        eventId: data.eventId,
+        title: data.title,
+        body: data.body,
+      })),
+      skipDuplicates: true,
+    })
+
+    return this.prisma.notification.findMany({
+      where: { eventId: data.eventId, userId: { in: data.userIds } },
+    })
+  }
+
   /** Marks a single unread notification read, scoped to its owner. Returns affected count. */
   markAsRead(userId: string, id: string) {
     return this.prisma.notification.updateMany({

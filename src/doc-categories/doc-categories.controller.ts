@@ -1,9 +1,11 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common'
 import { ApiCookieAuth, ApiOperation, ApiTags } from '@nestjs/swagger'
+import { ApiWrappedResponse } from '@lib/core'
 import { Role } from '@prisma/client'
 import { Roles } from '../common/decorators/roles.decorator'
 import { DocCategoriesService } from './doc-categories.service'
 import { CreateDocCategoryDto } from './dto/create-doc-category.dto'
+import { DocCategoryResponseDto } from './dto/doc-category-response.dto'
 import { UpdateDocCategoryDto } from './dto/update-doc-category.dto'
 
 @ApiTags('doc-categories')
@@ -16,6 +18,7 @@ export class DocCategoriesController {
   @Get()
   @Roles(Role.ADMIN, Role.MEMBER)
   @ApiOperation({ summary: 'List all document categories' })
+  @ApiWrappedResponse(DocCategoryResponseDto, { isArray: true })
   findAll() {
     return this.service.findAll()
   }
@@ -23,18 +26,21 @@ export class DocCategoriesController {
   @Get(':id')
   @Roles(Role.ADMIN, Role.MEMBER)
   @ApiOperation({ summary: 'Get a document category by id' })
+  @ApiWrappedResponse(DocCategoryResponseDto)
   findById(@Param('id') id: string) {
     return this.service.findById(id)
   }
 
   @Post()
   @ApiOperation({ summary: '[Admin] Create a document category' })
+  @ApiWrappedResponse(DocCategoryResponseDto)
   create(@Body() dto: CreateDocCategoryDto) {
     return this.service.create(dto)
   }
 
   @Patch(':id')
   @ApiOperation({ summary: '[Admin] Update a document category' })
+  @ApiWrappedResponse(DocCategoryResponseDto)
   update(@Param('id') id: string, @Body() dto: UpdateDocCategoryDto) {
     return this.service.update(id, dto)
   }

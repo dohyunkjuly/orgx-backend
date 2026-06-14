@@ -58,6 +58,15 @@ export class UsersRepository {
     return { items, total }
   }
 
+  /** Ids of all active members - used for broadcast notifications. */
+  async findActiveIds(): Promise<string[]> {
+    const users = await this.prisma.user.findMany({
+      where: { status: MemberStatus.ACTIVE },
+      select: { id: true },
+    })
+    return users.map((user) => user.id)
+  }
+
   create(data: Prisma.UserCreateInput) {
     return this.prisma.user.create({
       data,
