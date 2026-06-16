@@ -49,6 +49,15 @@ export class StorageService implements OnModuleInit {
     return params.key;
   }
 
+  /** Download an object's raw bytes. */
+  async download(key: string): Promise<Buffer> {
+    const res = await this.client.send(
+      new GetObjectCommand({ Bucket: this.bucket, Key: key }),
+    );
+    const bytes = await res.Body!.transformToByteArray();
+    return Buffer.from(bytes);
+  }
+
   /** Delete an object by key. */
   async delete(key: string): Promise<void> {
     await this.client.send(

@@ -9,6 +9,7 @@ import { NotificationsModule } from './notifications/notifications.module'
 import { SocketModule } from './socket/socket.module'
 import { UsersModule } from './users/users.module'
 import { BallotsModule } from './ballots/ballots.module';
+import { WhatsAppModule } from './whatsapp/whatsapp.module'
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { BallotsModule } from './ballots/ballots.module';
     DocumentsModule,
     NotificationsModule,
     SocketModule,
+    WhatsAppModule,
   ],
 })
 export class AppModule { }

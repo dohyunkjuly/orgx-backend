@@ -109,6 +109,13 @@ export const DOC_CATEGORY_IN_USE = new ApiHttpResponse(
   'Cannot delete a category that still has documents',
 )
 
+export const WHATSAPP_ANALYSIS_NOT_FOUND = new ApiHttpResponse(
+  HttpStatus.NOT_FOUND,
+  5004,
+  null,
+  'WhatsApp analysis not found',
+)
+
 // ─── Permission (4xxx) ────────────────────────────────
 export const FORBIDDEN_ROLE = new ApiHttpResponse(
   HttpStatus.FORBIDDEN,
