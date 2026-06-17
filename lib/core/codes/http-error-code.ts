@@ -116,6 +116,20 @@ export const WHATSAPP_ANALYSIS_NOT_FOUND = new ApiHttpResponse(
   'WhatsApp analysis not found',
 )
 
+export const TRANSACTION_CATEGORY_NOT_FOUND = new ApiHttpResponse(
+  HttpStatus.NOT_FOUND,
+  5005,
+  null,
+  'Transaction category not found',
+)
+
+export const TRANSACTION_CATEGORY_NAME_TAKEN = new ApiHttpResponse(
+  HttpStatus.CONFLICT,
+  5006,
+  null,
+  'A transaction category with that name and type already exists',
+)
+
 // ─── Permission (4xxx) ────────────────────────────────
 export const FORBIDDEN_ROLE = new ApiHttpResponse(
   HttpStatus.FORBIDDEN,
