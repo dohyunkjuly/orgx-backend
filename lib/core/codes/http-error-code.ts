@@ -80,6 +80,14 @@ export const ACCOUNT_PENDING = new ApiHttpResponse(
   'Account is pending admin approval',
 )
 
+// ─── Validation (3xxx) ────────────────────────────────────
+export const TRANSACTION_TYPE_CATEGORY_MISMATCH = new ApiHttpResponse(
+  HttpStatus.UNPROCESSABLE_ENTITY,
+  3001,
+  null,
+  'Transaction type does not match the category type',
+)
+
 // ─── Resource (5xxx) ──────────────────────────────────
 export const DOC_CATEGORY_NOT_FOUND = new ApiHttpResponse(
   HttpStatus.NOT_FOUND,
@@ -116,6 +124,7 @@ export const WHATSAPP_ANALYSIS_NOT_FOUND = new ApiHttpResponse(
   'WhatsApp analysis not found',
 )
 
+
 export const MEETING_NOT_FOUND = new ApiHttpResponse(
   HttpStatus.NOT_FOUND,
   5005,
@@ -136,6 +145,28 @@ export const MEETING_ATTACHMENT_NOT_FOUND = new ApiHttpResponse(
   null,
   'Meeting attachment not found',
 )
+
+export const TRANSACTION_CATEGORY_NOT_FOUND = new ApiHttpResponse(
+  HttpStatus.NOT_FOUND,
+  5008,
+  null,
+  'Transaction category not found',
+)
+
+export const TRANSACTION_CATEGORY_NAME_TAKEN = new ApiHttpResponse(
+  HttpStatus.CONFLICT,
+  5009,
+  null,
+  'A transaction category with that name and type already exists',
+)
+
+export const TRANSACTION_NOT_FOUND = new ApiHttpResponse(
+  HttpStatus.NOT_FOUND,
+  5010,
+  null,
+  'Transaction not found',
+ )
+
 
 // ─── Validation (3xxx) ────────────────────────────────
 export const MEETING_INVALID_TIME_RANGE = new ApiHttpResponse(
