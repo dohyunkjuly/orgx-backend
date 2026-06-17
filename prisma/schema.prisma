@@ -344,9 +344,10 @@ model Vote {
 
 model Meeting {
   id       String  @id @default(cuid(2))
-  title    String
-  agenda   String? @db.Text
-  location String
+  title       String
+  agenda      String? @db.Text
+  location    String
+  meetingLink String? // online meeting URL (e.g. Zoom, Google Meet)
 
   startsAt DateTime
   endsAt   DateTime
