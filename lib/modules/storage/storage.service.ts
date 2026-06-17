@@ -65,12 +65,25 @@ export class StorageService implements OnModuleInit {
     );
   }
 
-  /** Generate a presigned GET (read) URL for an object, valid for `expiresIn` seconds. */
-  async getUrl(key: string, expiresIn = 3600): Promise<string> {
+  /**
+   * Generate a presigned GET (read) URL for an object, valid for `expiresIn`
+   * seconds. Pass `downloadFileName` to force a browser download (sets
+   * Content-Disposition: attachment) with that filename instead of inline view.
+   */
+  async getUrl(
+    key: string,
+    options?: { expiresIn?: number; downloadFileName?: string },
+  ): Promise<string> {
     return getSignedUrl(
       this.client,
-      new GetObjectCommand({ Bucket: this.bucket, Key: key }),
-      { expiresIn },
+      new GetObjectCommand({
+        Bucket: this.bucket,
+        Key: key,
+        ...(options?.downloadFileName && {
+          ResponseContentDisposition: `attachment; filename="${options.downloadFileName}"`,
+        }),
+      }),
+      { expiresIn: options?.expiresIn ?? 3600 },
     );
   }
 }

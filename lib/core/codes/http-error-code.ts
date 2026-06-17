@@ -116,6 +116,35 @@ export const WHATSAPP_ANALYSIS_NOT_FOUND = new ApiHttpResponse(
   'WhatsApp analysis not found',
 )
 
+export const MEETING_NOT_FOUND = new ApiHttpResponse(
+  HttpStatus.NOT_FOUND,
+  5005,
+  null,
+  'Meeting not found',
+)
+
+export const MEETING_MINUTES_NOT_FOUND = new ApiHttpResponse(
+  HttpStatus.NOT_FOUND,
+  5006,
+  null,
+  'Meeting minutes not found',
+)
+
+export const MEETING_ATTACHMENT_NOT_FOUND = new ApiHttpResponse(
+  HttpStatus.NOT_FOUND,
+  5007,
+  null,
+  'Meeting attachment not found',
+)
+
+// ─── Validation (3xxx) ────────────────────────────────
+export const MEETING_INVALID_TIME_RANGE = new ApiHttpResponse(
+  HttpStatus.BAD_REQUEST,
+  3000,
+  null,
+  'Meeting end time must be after the start time',
+)
+
 // ─── Permission (4xxx) ────────────────────────────────
 export const FORBIDDEN_ROLE = new ApiHttpResponse(
   HttpStatus.FORBIDDEN,
