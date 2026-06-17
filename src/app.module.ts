@@ -11,6 +11,8 @@ import { UsersModule } from './users/users.module'
 import { BallotsModule } from './ballots/ballots.module';
 import { WhatsAppModule } from './whatsapp/whatsapp.module'
 import { FinanceModule } from './finance/finance.module'
+import { MeetingsModule } from './meetings/meetings.module'
+import { MeetingMinutesModule } from './meeting-minutes/meeting-minutes.module'
 
 @Module({
   imports: [
@@ -31,6 +33,8 @@ import { FinanceModule } from './finance/finance.module'
     SocketModule,
     WhatsAppModule,
     FinanceModule,
+    MeetingsModule,
+    MeetingMinutesModule,
   ],
 })
 export class AppModule { }

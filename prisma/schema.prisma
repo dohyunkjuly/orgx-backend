@@ -343,10 +343,11 @@ model Vote {
 // ============================================================
 
 model Meeting {
-  id       String  @id @default(cuid(2))
-  title    String
-  agenda   String? @db.Text
-  location String
+  id          String  @id @default(cuid(2))
+  title       String
+  agenda      String? @db.Text
+  location    String
+  meetingLink String? // online meeting URL (e.g. Zoom, Google Meet)
 
   startsAt DateTime
   endsAt   DateTime
@@ -360,8 +361,9 @@ model Meeting {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  createdBy User            @relation("MeetingCreator", fields: [createdById], references: [id])
-  minutes   MeetingMinutes?
+  createdBy   User                @relation("MeetingCreator", fields: [createdById], references: [id])
+  minutes     MeetingMinutes?
+  attachments MeetingAttachment[]
 
   @@index([startsAt])
   @@index([status])
@@ -378,26 +380,25 @@ model MeetingMinutes {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  meeting     Meeting             @relation(fields: [meetingId], references: [id], onDelete: Cascade)
-  attachments MeetingAttachment[]
+  meeting Meeting @relation(fields: [meetingId], references: [id], onDelete: Cascade)
 
   @@map("meeting_minutes")
 }
 
 model MeetingAttachment {
-  id               String @id @default(cuid(2))
-  meetingMinutesId String
+  id        String @id @default(cuid(2))
+  meetingId String
 
-  fileKey     String
+  fileKey   String
   fileName  String
   mimeType  String
   sizeBytes Int
 
   createdAt DateTime @default(now())
 
-  meetingMinutes MeetingMinutes @relation(fields: [meetingMinutesId], references: [id], onDelete: Cascade)
+  meeting Meeting @relation(fields: [meetingId], references: [id], onDelete: Cascade)
 
-  @@index([meetingMinutesId])
+  @@index([meetingId])
   @@map("meeting_attachments")
 }
 
