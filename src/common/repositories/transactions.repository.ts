@@ -54,4 +54,20 @@ export class TransactionsRepository {
       data: { deletedAt: new Date() },
     })
   }
+
+  async getSummary(filters: { from?: Date; to?: Date }) {
+    const where = {
+      deletedAt: null,
+      ...(filters.from || filters.to
+        ? { occurredOn: { ...(filters.from && { gte: filters.from }), ...(filters.to && { lte: filters.to }) } }
+        : {}),
+    }
+
+    const transactions = await this.prisma.transaction.findMany({
+      where,
+      include: { category: { select: { id: true, name: true } } },
+    })
+
+    return transactions
+  }
 }

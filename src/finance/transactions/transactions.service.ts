@@ -10,6 +10,7 @@ import type { Prisma } from '@prisma/client'
 import { TransactionCategoriesRepository } from '../../common/repositories/transaction-categories.repository'
 import { TransactionsRepository } from '../../common/repositories/transactions.repository'
 import type { CreateTransactionDto } from './dto/create-transaction.dto'
+import type { FinancialSummaryQueryDto } from './dto/financial-summary-query.dto'
 import type { ListTransactionsDto } from './dto/list-transactions.dto'
 import type { UpdateTransactionDto } from './dto/update-transaction.dto'
 
@@ -39,6 +40,42 @@ export class TransactionsService {
 
   findAll(filters: ListTransactionsDto) {
     return this.repo.findMany(filters)
+  }
+
+  async getSummary(dto: FinancialSummaryQueryDto) {
+    const from = dto.from ? new Date(dto.from) : undefined
+    const to = dto.to ? new Date(dto.to) : undefined
+    const transactions = await this.repo.getSummary({ from, to })
+
+    let totalIncome = 0
+    let totalExpense = 0
+    const byCategory = new Map<string, { categoryId: string; categoryName: string; type: string; total: number }>()
+
+    for (const tx of transactions) {
+      const amount = Number(tx.amount)
+      if (tx.type === 'INCOME') totalIncome += amount
+      else totalExpense += amount
+
+      const key = tx.categoryId
+      const existing = byCategory.get(key)
+      if (existing) {
+        existing.total += amount
+      } else {
+        byCategory.set(key, {
+          categoryId: tx.categoryId,
+          categoryName: tx.category?.name ?? 'Unknown',
+          type: tx.type,
+          total: amount,
+        })
+      }
+    }
+
+    return {
+      totalIncome,
+      totalExpense,
+      netBalance: totalIncome - totalExpense,
+      byCategory: Array.from(byCategory.values()),
+    }
   }
 
   async update(id: string, dto: UpdateTransactionDto, actorId: string) {

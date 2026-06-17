@@ -7,6 +7,7 @@ import { Roles } from '../../common/decorators/roles.decorator'
 import type { AuthUser } from '../../common/types/user'
 import { TransactionsService } from './transactions.service'
 import { CreateTransactionDto } from './dto/create-transaction.dto'
+import { FinancialSummaryQueryDto } from './dto/financial-summary-query.dto'
 import { ListTransactionsDto } from './dto/list-transactions.dto'
 import { TransactionResponseDto } from './dto/transaction-response.dto'
 import { UpdateTransactionDto } from './dto/update-transaction.dto'
@@ -31,6 +32,12 @@ export class TransactionsController {
   @ApiWrappedResponse(TransactionResponseDto, { isArray: true })
   findAll(@Query() dto: ListTransactionsDto) {
     return this.service.findAll(dto)
+  }
+
+  @Get('summary')
+  @ApiOperation({ summary: '[Admin] Get financial summary' })
+  getSummary(@Query() dto: FinancialSummaryQueryDto) {
+    return this.service.getSummary(dto)
   }
 
   @Patch(':id')
