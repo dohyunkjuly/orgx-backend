@@ -80,6 +80,14 @@ export const ACCOUNT_PENDING = new ApiHttpResponse(
   'Account is pending admin approval',
 )
 
+// ─── Validation (3xxx) ────────────────────────────────────
+export const TRANSACTION_TYPE_CATEGORY_MISMATCH = new ApiHttpResponse(
+  HttpStatus.UNPROCESSABLE_ENTITY,
+  3001,
+  null,
+  'Transaction type does not match the category type',
+)
+
 // ─── Resource (5xxx) ──────────────────────────────────
 export const DOC_CATEGORY_NOT_FOUND = new ApiHttpResponse(
   HttpStatus.NOT_FOUND,
@@ -128,6 +136,13 @@ export const TRANSACTION_CATEGORY_NAME_TAKEN = new ApiHttpResponse(
   5006,
   null,
   'A transaction category with that name and type already exists',
+)
+
+export const TRANSACTION_NOT_FOUND = new ApiHttpResponse(
+  HttpStatus.NOT_FOUND,
+  5007,
+  null,
+  'Transaction not found',
 )
 
 // ─── Permission (4xxx) ────────────────────────────────
