@@ -80,6 +80,27 @@ export const ACCOUNT_PENDING = new ApiHttpResponse(
   'Account is pending admin approval',
 )
 
+export const TWO_FACTOR_INVALID_CODE = new ApiHttpResponse(
+  HttpStatus.UNAUTHORIZED,
+  2009,
+  null,
+  'Invalid two-factor code',
+)
+
+export const TWO_FACTOR_NOT_SET_UP = new ApiHttpResponse(
+  HttpStatus.BAD_REQUEST,
+  2010,
+  null,
+  'Two-factor authentication has not been set up',
+)
+
+export const TWO_FACTOR_ALREADY_ENABLED = new ApiHttpResponse(
+  HttpStatus.CONFLICT,
+  2011,
+  null,
+  'Two-factor authentication is already enabled',
+)
+
 // ─── Validation (3xxx) ────────────────────────────────────
 export const TRANSACTION_TYPE_CATEGORY_MISMATCH = new ApiHttpResponse(
   HttpStatus.UNPROCESSABLE_ENTITY,

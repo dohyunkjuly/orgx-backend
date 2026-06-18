@@ -18,6 +18,9 @@ export class UserResponseDto {
   isEmailVerified!: boolean
 
   @ApiProperty()
+  twoFactorEnabled!: boolean
+
+  @ApiProperty()
   fullName!: string
 
   @ApiProperty({ enum: Gender })

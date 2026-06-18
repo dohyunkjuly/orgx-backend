@@ -16,4 +16,7 @@ export class SessionUserDto {
 
   @ApiProperty()
   isEmailVerified!: boolean
+
+  @ApiProperty()
+  twoFactorEnabled!: boolean
 }

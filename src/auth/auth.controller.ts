@@ -12,8 +12,11 @@ import { RegisterDto } from './dto/register.dto'
 import { ResendVerificationDto } from './dto/resend-verification.dto'
 import { ResetPasswordDto } from './dto/reset-password.dto'
 import { SessionUserDto } from './dto/session-user.dto'
+import { TwoFactorCodeDto } from './dto/two-factor-code.dto'
+import { TwoFactorSetupDto } from './dto/two-factor-setup.dto'
 import { UserResponseDto } from './dto/user-response.dto'
 import { VerifyEmailDto } from './dto/verify-email.dto'
+import { VerifyTwoFactorDto } from './dto/verify-two-factor.dto'
 import type { AuthUser } from '../common/types/user'
 import { CurrentUser } from '../common/decorators/current-user.decorator'
 import { Public } from '../common/decorators/public.decorator'
@@ -49,6 +52,24 @@ export class AuthController {
   @ApiOperation({ summary: 'Log in; sets accessToken & refreshToken httpOnly cookies' })
   async login(@Body() dto: LoginDto, @Res({ passthrough: true }) res: Response) {
     const result = await this.authService.login(dto.email, dto.password)
+
+    // 2FA enabled: no session yet — client must call /auth/2fa/verify.
+    if ('twoFactorRequired' in result) {
+      return { twoFactorRequired: true, challengeToken: result.challengeToken }
+    }
+
+    this.setAuthCookies(res, result.accessToken, result.refreshToken)
+    return { ok: true }
+  }
+
+  @Public()
+  @Post('2fa/verify')
+  @ApiOperation({ summary: 'Complete login with a TOTP code (when 2FA is required)' })
+  async verifyTwoFactor(
+    @Body() dto: VerifyTwoFactorDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const result = await this.authService.verifyTwoFactorLogin(dto.challengeToken, dto.code)
     this.setAuthCookies(res, result.accessToken, result.refreshToken)
     return { ok: true }
   }
@@ -128,6 +149,28 @@ export class AuthController {
     res.clearCookie(ACCESS_COOKIE_NAME, clearAccessCookieOptions())
     res.clearCookie(REFRESH_COOKIE_NAME, clearRefreshCookieOptions())
     return { ok: true }
+  }
+
+  @Post('2fa/setup')
+  @ApiCookieAuth()
+  @ApiOperation({ summary: 'Start 2FA setup — returns a secret + QR code (2FA stays off)' })
+  @ApiWrappedResponse(TwoFactorSetupDto)
+  async setupTwoFactor(@CurrentUser() user: AuthUser) {
+    return this.authService.setupTwoFactor(user.id)
+  }
+
+  @Post('2fa/enable')
+  @ApiCookieAuth()
+  @ApiOperation({ summary: 'Confirm 2FA setup with a code and enable it' })
+  async enableTwoFactor(@CurrentUser() user: AuthUser, @Body() dto: TwoFactorCodeDto) {
+    return this.authService.enableTwoFactor(user.id, dto.code)
+  }
+
+  @Post('2fa/disable')
+  @ApiCookieAuth()
+  @ApiOperation({ summary: 'Disable 2FA (requires a current code)' })
+  async disableTwoFactor(@CurrentUser() user: AuthUser, @Body() dto: TwoFactorCodeDto) {
+    return this.authService.disableTwoFactor(user.id, dto.code)
   }
 
   // ───────── helpers ─────────

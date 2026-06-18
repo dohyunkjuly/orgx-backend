@@ -111,4 +111,12 @@ export class UsersRepository {
       data: { isEmailVerified: true },
     })
   }
+
+  updateTwoFactor(id: string, data: { twoFactorEnabled?: boolean; twoFactorSecret?: string | null }) {
+    return this.prisma.user.update({
+      where: { id },
+      data,
+      omit: { passwordHash: true },
+    })
+  }
 }

@@ -14,9 +14,14 @@ import {
   USER_NOT_FOUND,
   EMAIL_NOT_VERIFIED,
   ACCOUNT_REJECTED,
+  TWO_FACTOR_INVALID_CODE,
+  TWO_FACTOR_NOT_SET_UP,
+  TWO_FACTOR_ALREADY_ENABLED,
 } from '@lib/core'
 import * as bcrypt from 'bcrypt'
 import { randomBytes, createHash } from 'crypto'
+import { generateSecret, generateURI, verify as verifyTotp } from 'otplib'
+import * as QRCode from 'qrcode'
 import { User } from '@prisma/client'
 
 import { RegisterDto } from './dto/register.dto'
@@ -102,9 +107,20 @@ export class AuthService {
     if (user.status === 'SUSPENDED') throw new ApiHttpError(ACCOUNT_SUSPENDED)
     if (user.status === 'REJECTED') throw new ApiHttpError(ACCOUNT_REJECTED)
 
+    // 2FA gate: don't issue session tokens yet — return a short-lived challenge
+    // that the client exchanges (with a TOTP code) at /auth/2fa/verify.
+    if (user.twoFactorEnabled) {
+      const challengeToken = this.jwt.sign({ sub: user.id, twofa: true }, { expiresIn: '5m' })
+      return { twoFactorRequired: true as const, challengeToken }
+    }
+
+    return this.issueSession(user)
+  }
+
+  /** Issues access + refresh tokens for a fully-authenticated user. */
+  private async issueSession(user: Pick<User, 'id' | 'email' | 'role'>) {
     const accessToken = this.signAccessToken(user)
     const { token: refreshToken, expiresAt } = await this.issueRefreshToken(user.id)
-
     return { accessToken, refreshToken, refreshExpiresAt: expiresAt }
   }
 
@@ -164,7 +180,75 @@ export class AuthService {
       role: user.role,
       status: user.status,
       isEmailVerified: user.isEmailVerified,
+      twoFactorEnabled: user.twoFactorEnabled,
     }
+  }
+
+  // ─────────────────────── two-factor (TOTP) ───────────────────────
+
+  private async verifyTotpCode(secret: string, code: string) {
+    // Allow a small clock-drift window (±30s) for usability.
+    const { valid } = await verifyTotp({ secret, token: code, epochTolerance: 30 })
+    if (!valid) throw new ApiHttpError(TWO_FACTOR_INVALID_CODE)
+  }
+
+  /** Generate a secret + QR for the authenticator app. 2FA stays OFF until confirmed. */
+  async setupTwoFactor(userId: string) {
+    const user = await this.users.findById(userId)
+    if (!user) throw new ApiHttpError(USER_NOT_FOUND)
+    if (user.twoFactorEnabled) throw new ApiHttpError(TWO_FACTOR_ALREADY_ENABLED)
+
+    const secret = generateSecret()
+    await this.users.updateTwoFactor(userId, { twoFactorSecret: secret })
+
+    const otpauthUrl = generateURI({ issuer: 'OrgX', label: user.email, secret })
+    const qrCode = await QRCode.toDataURL(otpauthUrl)
+
+    return { secret, otpauthUrl, qrCode }
+  }
+
+  /** Confirm setup with a code from the app, then turn 2FA on. */
+  async enableTwoFactor(userId: string, code: string) {
+    const user = await this.users.findById(userId)
+    if (!user) throw new ApiHttpError(USER_NOT_FOUND)
+    if (user.twoFactorEnabled) throw new ApiHttpError(TWO_FACTOR_ALREADY_ENABLED)
+    if (!user.twoFactorSecret) throw new ApiHttpError(TWO_FACTOR_NOT_SET_UP)
+
+    await this.verifyTotpCode(user.twoFactorSecret, code)
+    await this.users.updateTwoFactor(userId, { twoFactorEnabled: true })
+    return { ok: true }
+  }
+
+  /** Turn 2FA off (requires a valid current code). */
+  async disableTwoFactor(userId: string, code: string) {
+    const user = await this.users.findById(userId)
+    if (!user) throw new ApiHttpError(USER_NOT_FOUND)
+    if (!user.twoFactorEnabled || !user.twoFactorSecret) {
+      throw new ApiHttpError(TWO_FACTOR_NOT_SET_UP)
+    }
+
+    await this.verifyTotpCode(user.twoFactorSecret, code)
+    await this.users.updateTwoFactor(userId, { twoFactorEnabled: false, twoFactorSecret: null })
+    return { ok: true }
+  }
+
+  /** Second login step: exchange the challenge token + TOTP code for a session. */
+  async verifyTwoFactorLogin(challengeToken: string, code: string) {
+    let payload: { sub?: string; twofa?: boolean }
+    try {
+      payload = this.jwt.verify(challengeToken)
+    } catch {
+      throw new ApiHttpError(INVALID_OR_EXPIRED_TOKEN)
+    }
+    if (!payload.twofa || !payload.sub) throw new ApiHttpError(INVALID_OR_EXPIRED_TOKEN)
+
+    const user = await this.users.findById(payload.sub)
+    if (!user || !user.twoFactorEnabled || !user.twoFactorSecret) {
+      throw new ApiHttpError(TWO_FACTOR_NOT_SET_UP)
+    }
+
+    await this.verifyTotpCode(user.twoFactorSecret, code)
+    return this.issueSession(user)
   }
 
   // ───────────────────── email verification ─────────────────────

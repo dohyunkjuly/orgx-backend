@@ -79,6 +79,10 @@ model User {
   status          MemberStatus @default(PENDING)
   isEmailVerified Boolean      @default(false)
 
+  // Two-factor auth (TOTP)
+  twoFactorEnabled Boolean @default(false)
+  twoFactorSecret  String? // base32 TOTP secret; null until set up
+
   // Profile
   fullName String
   gender   Gender
