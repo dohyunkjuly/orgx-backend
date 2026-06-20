@@ -57,7 +57,9 @@ export class DocumentsService {
     return Promise.all(
       documents.map(async (document) => ({
         ...document,
-        downloadUrl: await this.storage.getUrl(document.fileKey),
+        downloadUrl: await this.storage.getUrl(document.fileKey, {
+          downloadFileName: document.fileName,
+        }),
       })),
     )
   }
