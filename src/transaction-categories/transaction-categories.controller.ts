@@ -2,7 +2,7 @@ import { Body, Controller, Delete, Get, Param, Post, Query } from '@nestjs/commo
 import { ApiCookieAuth, ApiOperation, ApiTags } from '@nestjs/swagger'
 import { ApiWrappedResponse } from '@lib/core'
 import { Role } from '@prisma/client'
-import { Roles } from '../../common/decorators/roles.decorator'
+import { Roles } from '../common/decorators/roles.decorator'
 import { TransactionCategoriesService } from './transaction-categories.service'
 import { CreateTransactionCategoryDto } from './dto/create-transaction-category.dto'
 import { ListTransactionCategoriesDto } from './dto/list-transaction-categories.dto'

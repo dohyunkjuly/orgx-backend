@@ -7,10 +7,9 @@ import {
 } from '@lib/core'
 import { PrismaService } from '@lib/modules'
 import type { Prisma } from '@prisma/client'
-import { TransactionCategoriesRepository } from '../../common/repositories/transaction-categories.repository'
-import { TransactionsRepository } from '../../common/repositories/transactions.repository'
+import { TransactionCategoriesRepository } from '../common/repositories/transaction-categories.repository'
+import { TransactionsRepository } from '../common/repositories/transactions.repository'
 import type { CreateTransactionDto } from './dto/create-transaction.dto'
-import type { FinancialSummaryQueryDto } from './dto/financial-summary-query.dto'
 import type { ListTransactionsDto } from './dto/list-transactions.dto'
 import type { UpdateTransactionDto } from './dto/update-transaction.dto'
 
@@ -38,14 +37,20 @@ export class TransactionsService {
     })
   }
 
-  findAll(filters: ListTransactionsDto) {
-    return this.repo.findMany(filters)
+  async findAll(filters: ListTransactionsDto) {
+    const page = filters.page ?? 1
+    const limit = filters.limit ?? 20
+    const { items, total } = await this.repo.findMany({
+      type: filters.type,
+      categoryId: filters.categoryId,
+      skip: (page - 1) * limit,
+      take: limit,
+    })
+    return { items, total, page, limit }
   }
 
-  async getSummary(dto: FinancialSummaryQueryDto) {
-    const from = dto.from ? new Date(dto.from) : undefined
-    const to = dto.to ? new Date(dto.to) : undefined
-    const transactions = await this.repo.getSummary({ from, to })
+  async getSummary() {
+    const transactions = await this.repo.getSummary()
 
     let totalIncome = 0
     let totalExpense = 0

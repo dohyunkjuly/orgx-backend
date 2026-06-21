@@ -10,7 +10,8 @@ import { SocketModule } from './socket/socket.module'
 import { UsersModule } from './users/users.module'
 import { BallotsModule } from './ballots/ballots.module';
 import { WhatsAppModule } from './whatsapp/whatsapp.module'
-import { FinanceModule } from './finance/finance.module'
+import { TransactionCategoriesModule } from './transaction-categories/transaction-categories.module'
+import { TransactionsModule } from './transactions/transactions.module'
 import { MeetingsModule } from './meetings/meetings.module'
 import { MeetingMinutesModule } from './meeting-minutes/meeting-minutes.module'
 
@@ -32,7 +33,8 @@ import { MeetingMinutesModule } from './meeting-minutes/meeting-minutes.module'
     NotificationsModule,
     SocketModule,
     WhatsAppModule,
-    FinanceModule,
+    TransactionCategoriesModule,
+    TransactionsModule,
     MeetingsModule,
     MeetingMinutesModule,
   ],

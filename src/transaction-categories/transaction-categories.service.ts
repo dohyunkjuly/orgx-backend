@@ -4,7 +4,7 @@ import {
   TRANSACTION_CATEGORY_NAME_TAKEN,
   TRANSACTION_CATEGORY_NOT_FOUND,
 } from '@lib/core'
-import { TransactionCategoriesRepository } from '../../common/repositories/transaction-categories.repository'
+import { TransactionCategoriesRepository } from '../common/repositories/transaction-categories.repository'
 import type { CreateTransactionCategoryDto } from './dto/create-transaction-category.dto'
 import type { ListTransactionCategoriesDto } from './dto/list-transaction-categories.dto'
 

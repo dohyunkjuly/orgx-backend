@@ -188,6 +188,13 @@ export const TRANSACTION_NOT_FOUND = new ApiHttpResponse(
   'Transaction not found',
  )
 
+export const TRANSACTION_ATTACHMENT_NOT_FOUND = new ApiHttpResponse(
+  HttpStatus.NOT_FOUND,
+  5011,
+  null,
+  'Transaction attachment not found',
+)
+
 
 // ─── Validation (3xxx) ────────────────────────────────
 export const MEETING_INVALID_TIME_RANGE = new ApiHttpResponse(

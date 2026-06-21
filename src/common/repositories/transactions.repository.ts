@@ -6,23 +6,53 @@ import type { Prisma, TransactionType } from '@prisma/client'
 export class TransactionsRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  findMany(filters: { type?: TransactionType; categoryId?: string }) {
-    return this.prisma.transaction.findMany({
-      where: {
-        deletedAt: null,
-        ...(filters.type && { type: filters.type }),
-        ...(filters.categoryId && { categoryId: filters.categoryId }),
-      },
-      include: { category: { select: { id: true, name: true, type: true } } },
-      orderBy: { occurredOn: 'desc' },
-    })
+  async findMany(filters: {
+    type?: TransactionType
+    categoryId?: string
+    skip: number
+    take: number
+  }) {
+    const where: Prisma.TransactionWhereInput = {
+      deletedAt: null,
+      ...(filters.type && { type: filters.type }),
+      ...(filters.categoryId && { categoryId: filters.categoryId }),
+    }
+
+    const [items, total] = await this.prisma.$transaction([
+      this.prisma.transaction.findMany({
+        where,
+        include: { category: { select: { id: true, name: true, type: true } } },
+        orderBy: [{ occurredOn: 'desc' }, { createdAt: 'desc' }],
+        skip: filters.skip,
+        take: filters.take,
+      }),
+      this.prisma.transaction.count({ where }),
+    ])
+
+    return { items, total }
   }
 
   findById(id: string) {
     return this.prisma.transaction.findFirst({
       where: { id, deletedAt: null },
-      include: { category: { select: { id: true, name: true, type: true } } },
+      include: {
+        category: { select: { id: true, name: true, type: true } },
+        attachments: { orderBy: { createdAt: 'asc' } },
+      },
     })
+  }
+
+  // ── Attachments ──
+  createAttachment(data: Prisma.TransactionAttachmentUncheckedCreateInput) {
+    return this.prisma.transactionAttachment.create({ data })
+  }
+
+  findAttachmentById(id: string) {
+    return this.prisma.transactionAttachment.findUnique({ where: { id } })
+  }
+
+  deleteAttachment(id: string) {
+    return this.prisma.transactionAttachment.delete({ where: { id } })
   }
 
   create(data: {
@@ -55,19 +85,10 @@ export class TransactionsRepository {
     })
   }
 
-  async getSummary(filters: { from?: Date; to?: Date }) {
-    const where = {
-      deletedAt: null,
-      ...(filters.from || filters.to
-        ? { occurredOn: { ...(filters.from && { gte: filters.from }), ...(filters.to && { lte: filters.to }) } }
-        : {}),
-    }
-
-    const transactions = await this.prisma.transaction.findMany({
-      where,
+  getSummary() {
+    return this.prisma.transaction.findMany({
+      where: { deletedAt: null },
       include: { category: { select: { id: true, name: true } } },
     })
-
-    return transactions
   }
 }
