@@ -101,6 +101,20 @@ export class BallotsRepository {
     return this.prisma.ballot.delete({ where: { id } })
   }
 
+  countByStatus(status: BallotStatus) {
+    return this.prisma.ballot.count({ where: { status } })
+  }
+
+  /** Of the given ballots, which the voter has already voted in. */
+  async findVotedBallotIds(voterId: string, ballotIds: string[]): Promise<string[]> {
+    if (ballotIds.length === 0) return []
+    const parts = await this.prisma.ballotParticipation.findMany({
+      where: { voterId, ballotId: { in: ballotIds } },
+      select: { ballotId: true },
+    })
+    return parts.map((p) => p.ballotId)
+  }
+
   hasVoted(ballotId: string, voterId: string) {
     return this.prisma.ballotParticipation.findUnique({
       where: { ballotId_voterId: { ballotId, voterId } },

@@ -56,4 +56,17 @@ export class DocumentsRepository {
   countByCategory(categoryId: string) {
     return this.prisma.document.count({ where: { categoryId } })
   }
+
+  count() {
+    return this.prisma.document.count({ where: { deletedAt: null } })
+  }
+
+  findRecent(take: number) {
+    return this.prisma.document.findMany({
+      where: { deletedAt: null },
+      select: { id: true, title: true, createdAt: true },
+      orderBy: { createdAt: 'desc' },
+      take,
+    })
+  }
 }

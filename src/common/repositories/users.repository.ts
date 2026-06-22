@@ -58,6 +58,17 @@ export class UsersRepository {
     return { items, total }
   }
 
+  /** Member counts by status - for the admin dashboard. */
+  async countsByStatus() {
+    const [total, active, pending, suspended] = await this.prisma.$transaction([
+      this.prisma.user.count(),
+      this.prisma.user.count({ where: { status: MemberStatus.ACTIVE } }),
+      this.prisma.user.count({ where: { status: MemberStatus.PENDING } }),
+      this.prisma.user.count({ where: { status: MemberStatus.SUSPENDED } }),
+    ])
+    return { total, active, pending, suspended }
+  }
+
   /** Ids of all active members - used for broadcast notifications. */
   async findActiveIds(): Promise<string[]> {
     const users = await this.prisma.user.findMany({

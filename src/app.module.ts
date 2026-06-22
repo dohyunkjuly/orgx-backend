@@ -14,6 +14,7 @@ import { TransactionCategoriesModule } from './transaction-categories/transactio
 import { TransactionsModule } from './transactions/transactions.module'
 import { MeetingsModule } from './meetings/meetings.module'
 import { MeetingMinutesModule } from './meeting-minutes/meeting-minutes.module'
+import { DashboardModule } from './dashboard/dashboard.module'
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { MeetingMinutesModule } from './meeting-minutes/meeting-minutes.module'
     TransactionsModule,
     MeetingsModule,
     MeetingMinutesModule,
+    DashboardModule,
   ],
 })
 export class AppModule { }
