@@ -52,6 +52,13 @@ export const REFRESH_TOKEN_INVALID = new ApiHttpResponse(
   'Refresh token is invalid or expired',
 )
 
+export const ACCESS_TOKEN_INVALID = new ApiHttpResponse(
+  HttpStatus.UNAUTHORIZED,
+  2012,
+  null,
+  'Access token is missing, invalid, or expired',
+)
+
 export const ACCOUNT_SUSPENDED = new ApiHttpResponse(
   HttpStatus.FORBIDDEN,
   2005,
@@ -193,6 +200,49 @@ export const TRANSACTION_ATTACHMENT_NOT_FOUND = new ApiHttpResponse(
   5011,
   null,
   'Transaction attachment not found',
+)
+
+export const BALLOT_NOT_FOUND = new ApiHttpResponse(
+  HttpStatus.NOT_FOUND,
+  5012,
+  null,
+  'Ballot not found',
+)
+
+// ─── Ballot validation/state (3xxx) ───────────────────
+export const BALLOT_ALREADY_VOTED = new ApiHttpResponse(
+  HttpStatus.CONFLICT,
+  3002,
+  null,
+  'You have already voted in this ballot',
+)
+
+export const BALLOT_NOT_OPEN = new ApiHttpResponse(
+  HttpStatus.CONFLICT,
+  3003,
+  null,
+  'This ballot is not open for voting',
+)
+
+export const BALLOT_INVALID_STATE = new ApiHttpResponse(
+  HttpStatus.CONFLICT,
+  3004,
+  null,
+  'Ballot is not in a valid state for this action',
+)
+
+export const BALLOT_INVALID_SELECTION = new ApiHttpResponse(
+  HttpStatus.BAD_REQUEST,
+  3005,
+  null,
+  'Invalid option selection for this ballot',
+)
+
+export const BALLOT_INVALID_TIME_RANGE = new ApiHttpResponse(
+  HttpStatus.BAD_REQUEST,
+  3006,
+  null,
+  'Ballot end time must be after the start time',
 )
 
 

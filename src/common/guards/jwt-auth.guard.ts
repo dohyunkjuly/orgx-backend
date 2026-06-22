@@ -1,8 +1,8 @@
-import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common'
+import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
 import { JwtService } from '@nestjs/jwt'
 import type { Request } from 'express'
-import { ApiHttpError, ACCOUNT_SUSPENDED } from '@lib/core'
+import { ApiHttpError, ACCESS_TOKEN_INVALID, ACCOUNT_SUSPENDED } from '@lib/core'
 import type { JwtPayload } from '../types/jwt-payload'
 import { UsersRepository } from '../repositories/users.repository'
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator'
@@ -26,17 +26,17 @@ export class JwtAuthGuard implements CanActivate {
 
     const req = ctx.switchToHttp().getRequest<Request>()
     const token = this.extractToken(req)
-    if (!token) throw new UnauthorizedException()
+    if (!token) throw new ApiHttpError(ACCESS_TOKEN_INVALID)
 
     let payload: JwtPayload
     try {
       payload = await this.jwt.verifyAsync<JwtPayload>(token)
     } catch {
-      throw new UnauthorizedException()
+      throw new ApiHttpError(ACCESS_TOKEN_INVALID)
     }
 
     const user = await this.users.findByIdSafe(payload.sub)
-    if (!user) throw new UnauthorizedException()
+    if (!user) throw new ApiHttpError(ACCESS_TOKEN_INVALID)
     if (user.status === 'SUSPENDED') throw new ApiHttpError(ACCOUNT_SUSPENDED)
 
     // attach to request so @CurrentUser() can read it

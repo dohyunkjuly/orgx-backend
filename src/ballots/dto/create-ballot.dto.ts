@@ -1,5 +1,16 @@
-import { IsString, IsNotEmpty, IsDateString, IsArray, ArrayMinSize, IsOptional } from 'class-validator';
+import {
+  IsString,
+  IsNotEmpty,
+  IsDateString,
+  IsArray,
+  ArrayMinSize,
+  IsOptional,
+  IsEnum,
+  IsInt,
+  Min,
+} from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { BallotType } from '@prisma/client';
 
 export class CreateBallotDto {
   @ApiProperty({ example: 'Sprint 2 Priority' })
@@ -16,6 +27,20 @@ export class CreateBallotDto {
   @IsString()
   @IsOptional()
   description?: string;
+
+  @ApiPropertyOptional({ enum: BallotType, default: BallotType.SINGLE_CHOICE })
+  @IsOptional()
+  @IsEnum(BallotType)
+  type?: BallotType;
+
+  @ApiPropertyOptional({
+    example: 2,
+    description: 'Max options a voter may pick. Required for MULTIPLE_CHOICE.',
+  })
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  maxSelections?: number;
 
   @ApiProperty({ example: '2024-05-01T10:00:00Z' })
   @IsDateString()
