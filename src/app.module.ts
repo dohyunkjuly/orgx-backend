@@ -15,6 +15,7 @@ import { TransactionsModule } from './transactions/transactions.module'
 import { MeetingsModule } from './meetings/meetings.module'
 import { MeetingMinutesModule } from './meeting-minutes/meeting-minutes.module'
 import { DashboardModule } from './dashboard/dashboard.module'
+import { AnnouncementsModule } from './announcements/announcements.module'
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { DashboardModule } from './dashboard/dashboard.module'
     MeetingsModule,
     MeetingMinutesModule,
     DashboardModule,
+    AnnouncementsModule,
   ],
 })
 export class AppModule { }

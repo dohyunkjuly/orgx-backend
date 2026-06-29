@@ -41,6 +41,7 @@ enum NotificationType {
   MEETING_UPDATED
   MEETING_CANCELLED
   MEETING_REMINDER
+  ANNOUNCEMENT_CREATED
 }
 
 enum BallotType {
@@ -111,6 +112,7 @@ model User {
   ballotParticipations BallotParticipation[]
   createdMeetings      Meeting[]             @relation("MeetingCreator")
   recordedTransactions Transaction[]         @relation("TransactionRecorder")
+  createdAnnouncements Announcement[]        @relation("AnnouncementCreator")
   auditLogs            AuditLog[]
 
   @@map("users")
@@ -404,6 +406,28 @@ model MeetingAttachment {
 
   @@index([meetingId])
   @@map("meeting_attachments")
+}
+
+// ============================================================
+// ANNOUNCEMENTS
+// ============================================================
+// Admin-authored posts visible to all members.
+
+model Announcement {
+  id    String @id @default(cuid(2))
+  title String
+  body  String @db.Text
+
+  createdById String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  createdBy User @relation("AnnouncementCreator", fields: [createdById], references: [id])
+
+  @@index([createdById])
+  @@index([createdAt])
+  @@map("announcements")
 }
 
 // ============================================================

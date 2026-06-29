@@ -209,6 +209,13 @@ export const BALLOT_NOT_FOUND = new ApiHttpResponse(
   'Ballot not found',
 )
 
+export const ANNOUNCEMENT_NOT_FOUND = new ApiHttpResponse(
+  HttpStatus.NOT_FOUND,
+  5013,
+  null,
+  'Announcement not found',
+)
+
 // ─── Ballot validation/state (3xxx) ───────────────────
 export const BALLOT_ALREADY_VOTED = new ApiHttpResponse(
   HttpStatus.CONFLICT,
