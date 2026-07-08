@@ -1,5 +1,30 @@
 # Organization X — Backend
 
+Backend for the **Organization X** portal — a membership platform for managing an
+organization's members, meetings, finances, documents, and internal communication.
+Built with **NestJS 11** and **Prisma (MySQL)**, it exposes a REST API plus a
+real-time WebSocket layer, secured with JWT access/refresh tokens and optional
+two-factor authentication. Core features include member management, meetings and
+minutes, finance tracking, document storage, announcements, voting/ballots, and
+live notifications.
+
+## Related Repositories
+
+| Repo | Description |
+| ---- | ----------- |
+| **Frontend** (this repo) | [dohyunkjuly/orgx-frontend](https://github.com/dohyunkjuly/orgx-frontend) — Next.js web client |
+| **Backend** | [dohyunkjuly/orgx-backend](https://github.com/dohyunkjuly/orgx-backend) — REST API + WebSocket server |
+
+
+## Architecture
+
+![Organization X system architecture](docs/architecture.png)
+
+The Next.js frontend talks to the NestJS backend over a REST API and a real-time
+WebSocket (Socket.IO) connection. The backend persists data to MySQL via Prisma,
+stores uploaded documents in Hetzner S3-compatible object storage, and sends
+transactional email (verification, password reset) over SMTP.
+
 ## Prerequisites
 
 Node.js 18+, npm, Docker (Optional).
