@@ -23,9 +23,19 @@ See [Environment variables](#environment-variables) for what each key means.
 
 ## Run
 
+For development
+
 ```bash
 npm run start:dev
 ```
+
+For production
+
+```bash
+npm run build
+npm run start
+```
+
 
 Server runs on `http://localhost:3000`.
 
