@@ -16,6 +16,27 @@ export const EMAIL_ALREADY_REGISTERED = new ApiHttpResponse(
   'Email already registered',
 )
 
+export const MEMBER_IMPORT_BATCH_NOT_FOUND = new ApiHttpResponse(
+  HttpStatus.BAD_REQUEST,
+  1002,
+  null,
+  'Import batch not found or already committed',
+)
+
+export const MEMBER_IMPORT_EMPTY_FILE = new ApiHttpResponse(
+  HttpStatus.BAD_REQUEST,
+  1003,
+  null,
+  'The uploaded file has no rows to import',
+)
+
+export const MEMBER_IMPORT_INVALID_FILE = new ApiHttpResponse(
+  HttpStatus.BAD_REQUEST,
+  1004,
+  null,
+  'Could not parse the uploaded file as CSV',
+)
+
 // ─── Auth (2xxx) ──────────────────────────────────────
 export const INVALID_CREDENTIALS = new ApiHttpResponse(
   HttpStatus.UNAUTHORIZED,
